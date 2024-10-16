@@ -1,28 +1,28 @@
-use crate::elevator::pid_controller::PIDController;
-use crate::elevator::elevator_motor::ElevatorMotor;
+use super::pid_controller::PIDController;
+use super::elevator_motor::ElevatorMotor;
 use std::time::Instant;
 
 pub struct Elevator {
-    floors: Vec<f32>, // floor heights, taken from elevator controller
-    is_idle: bool,
+    pub floors: Vec<f32>, // floor heights, taken from elevator controller
+    pub is_idle: bool,
     // pid-related
-    current_height: f32,
-    current_speed: f32,
-    current_accel: f32,
-    height_pid: PIDController,
-    speed_pid: PIDController,
+    pub current_height: f32,
+    pub current_speed: f32,
+    pub current_accel: f32,
+    pub height_pid: PIDController,
+    pub speed_pid: PIDController,
     // weigth and forces 
-    max_speed: f32,
-    max_accel: f32,
-    elevator_mass: f32,
-    elevator_counter_mass: f32,
-    max_load: f32,
-    current_load: f32,
-    motor: ElevatorMotor,
+    pub max_speed: f32,
+    pub max_accel: f32,
+    pub elevator_mass: f32,
+    pub elevator_counter_mass: f32,
+    pub max_load: f32,
+    pub current_load: f32,
+    pub motor: ElevatorMotor,
     // simulation-related
-    gravity: f32,
-    last_update: Instant,
-    time_multiplier: f32,
+    pub gravity: f32,
+    pub last_update: Instant,
+    pub time_multiplier: f32,
 }
 
 

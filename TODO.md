@@ -9,6 +9,7 @@
  - yaş/kütle grafikleri 
  - asansör bekleyen insan sayısı / asansöre binme hızı grafiği
  - bir kişinin ortalam gittiği kat sayısı / bina uzunluğu
+ - asansör içinde insan hareketlerinin düzensizliğiden kaynaklı rastgelelik ekle
 
 # Asansör Yönetim Algoritmaları
  - Genetik Algoritma
