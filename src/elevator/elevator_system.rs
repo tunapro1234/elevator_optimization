@@ -36,8 +36,7 @@ impl ElevatorSystem {
 
     pub fn update(&mut self) {
         for elevator in &mut self.elevators {
-            let consumed_energy = elevator.update();
-            self.total_energy_consumed += consumed_energy;
+            elevator.update();
         }
     }
 }

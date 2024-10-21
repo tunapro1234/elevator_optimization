@@ -1,7 +1,14 @@
+# Unutmamak için kenara yazdıklarım
+ - asansör height pid limitleri ayarla
+ - motor yükü kaldırabiliyor mu test et
+ - motor speed pid private olcak
+
 # Asansör Mekanizması Hakkındakiler
  - Daha gerçekçi kılmak için motorun çıktısına rastgelelik katılabilir (pid de anlamlı olur)
  - Motor mekanizmasına rpm tork ve gear ratio eklenebilir
  - Motor girdi/çıktı ve enerji bağlantısı daha gerçekçi bir fonksiyonla değişebilir (şu an doğrusal)
+ - Motorun gearbox ratiosu
+ - Motorun özelliklerini temsil eden fonksiyon geliştirilebilir
 
 
 # Simülasyon Gerçekliğini Arttıranlar

@@ -3,6 +3,11 @@ pub struct PIDController {
     kp: f32,
     ki: f32,
     kd: f32,
+    enable_limits: bool,
+    max_target: f32,
+    min_target: f32,
+    max_output: f32,
+    min_output: f32,
     prev_error: f32,
     integral: f32,
     prev_output: f32,
@@ -18,12 +23,22 @@ impl PIDController {
         kd: f32, 
         update_freq: f32,
         tolerance: f32,
+        enable_limits: bool,
+        max_target: f32,
+        min_target: f32,
+        max_output: f32,
+        min_output: f32,
     ) -> Self {
         Self {
             target: 0.0,
             kp,
             ki,
             kd,
+            enable_limits,
+            max_target,
+            min_target,
+            max_output,
+            min_output,
             prev_error: 0.0,
             integral: 0.0,
             prev_output: 0.0,
@@ -33,8 +48,19 @@ impl PIDController {
         }
     }
 
-    pub fn set_target(&mut self, target: f32) {
+    pub fn set_target(&mut self, target: f32) -> bool{
+        if self.enable_limits {
+            if target < self.min_target {
+                self.target = self.min_target;
+                return false;
+            } else if target > self.max_target {
+                self.target = self.max_target;
+                return false;
+            } 
+        }
+
         self.target = target;
+        return true;
     }
 
     pub fn has_reached_target(&self, current_value: f32) -> bool {
@@ -75,8 +101,17 @@ impl PIDController {
         self.prev_error = error;
 
         // Calculate the output
-        let output = proportional + integral + derivative;
+        let mut output = proportional + integral + derivative;
         self.prev_output = output;
+
+        // Check if the output is within limits
+        if self.enable_limits {
+            if output < self.min_output {
+                output = self.min_output;
+            } else if output > self.max_output {
+                output = self.max_output;
+            }
+        }
 
         // Return the output
         output

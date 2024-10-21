@@ -7,10 +7,10 @@ pub struct Elevator {
     pub is_idle: bool,
     // pid-related
     pub current_height: f32,
-    pub current_speed: f32,
+    // pub current_speed: f32,
     pub current_accel: f32,
     pub height_pid: PIDController,
-    pub speed_pid: PIDController,
+    // pub speed_pid: PIDController,
     // weigth and forces 
     pub max_speed: f32,
     pub max_accel: f32,
@@ -36,28 +36,47 @@ impl Elevator {
         max_load: f32,
         time_multiplier: f32,
     ) -> Self {
-        let height_pid = PIDController::new(1., 0., 0., 10., 0.);
-        let speed_pid = PIDController::new(1., 0., 0., 30., 0.);
+        let height_pid = PIDController::new(
+            1., 
+            0., 
+            0., 
+            10., 
+            0.,
+            false,
+            0.,
+            0.,
+            0.,
+            0.,
+        );
+        // let speed_pid = PIDController::new(1., 0., 0., 30., 0.);
+        let motor = ElevatorMotor::new(
+            "motor_properties.json", 
+            1.
+        ).unwrap();
 
         Self {
             floors,
             is_idle: true,
             current_height: 0.0,
-            current_speed: 0.0,
+            // current_speed: 0.0,
             current_accel: 0.0,
             height_pid,
-            speed_pid,
+            // speed_pid,
             max_speed,
             max_accel,
             elevator_mass,
             elevator_counter_mass,
             max_load,
             current_load: 0.0,
-            motor: ElevatorMotor::new(1000., 0.8),
+            motor,
             gravity: 9.81,
             last_update: Instant::now(),
             time_multiplier,
         }
+    }
+
+    fn get_used_energy(&self) -> f32{
+        self.motor.get_total_energy_used()
     }
 
     fn get_total_mass(&self) -> f32 {
@@ -76,28 +95,16 @@ impl Elevator {
 
     fn calculate_target_speed(&mut self, delta_time: f32) -> f32 {
         // calculate target speed
-        let mut target_speed = self.height_pid.update(self.current_height, delta_time);
-        if target_speed > self.max_speed {
-            target_speed = self.max_speed;
-        } else if target_speed < -self.max_speed {
-            target_speed = -self.max_speed;
-        }
+        let target_speed = self.height_pid.update(self.current_height, delta_time);
+
+        // limits are applied in the motor
+        // if target_speed > self.max_speed {
+        //     target_speed = self.max_speed;
+        // } else if target_speed < -self.max_speed {
+        //     target_speed = -self.max_speed;
+        // }
 
         target_speed
-    }
-
-    fn calculate_target_accel(&mut self, target_speed: f32, delta_time: f32) -> f32 {
-        // calculate target acceleration
-        self.speed_pid.set_target(target_speed);
-        let mut target_accel = self.speed_pid.update(self.current_speed, delta_time);
-        // calculate the force required, this will be used on energy calculation
-        if target_accel > self.max_accel {
-            target_accel = self.max_accel;
-        } else if target_accel < -self.max_accel {
-            target_accel = -self.max_accel;
-        }
-
-        target_accel
     }
 
     fn calculate_motor_force(&self, target_accel: f32) -> f32 {
@@ -134,22 +141,35 @@ impl Elevator {
         self.is_idle = false;
     }
 
-    pub fn update(&mut self) -> f32 {
+    pub fn get_current_speed(&self) -> f32 {
+        self.motor.get_current_speed()
+    }
+
+    pub fn update(&mut self) {
+        // Delta time ve geçmiş döngüyle hesaplama yapan işler fonksiyonun başında
+        // yeni hesaplamalar aşağıda
+        
+        // geçen zamanı al
         let delta_time = self.get_delta_time();
 
-        let force = self.calculate_motor_force(self.current_accel);
-        let used_energy = self.motor.calculate_used_energy(force, self.current_speed, self.current_accel, delta_time);
+        // geçen zamana bağlı yüksekliği güncelle
+        self.current_height += self.motor.get_current_speed() * delta_time;
 
+        // geçen zamana bağlı motor değerlerini güncelle (harcanılan enerji gibi)
+        self.motor.update(delta_time);
+
+        // yeni hesaplamalar
         // calculate target speed
         let target_speed: f32 = self.calculate_target_speed(delta_time);
-        let target_accel = self.calculate_target_accel(target_speed, delta_time);
 
-        self.current_speed += target_accel * delta_time; 
-        self.current_height += self.current_speed * delta_time;
+        // get required force to reach the target speed
+        // let target_accel = (target_speed - self.current_accel) / delta_time;
+        // let required_force = self.calculate_motor_force(target_accel)
+        // do stuff with required force idk
 
+        // motora yeni hedefi ver
+        self.motor.set_target_speed(target_speed);
         self.is_idle = self.height_pid.has_reached_target(self.current_height);
-
-        used_energy
     }
 
 
