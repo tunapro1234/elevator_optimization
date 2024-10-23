@@ -1,14 +1,18 @@
 # Yakın Gelecek
 
-# Unutmamak için kenara yazdığım ufak işler
-- [ ] asansör height pid limitleri ayarla
-- [ ] motor yükü kaldırabiliyor mu test et (motorda max force var)
-- [ ] gearbox test et
-- [ ] motor speed pid private olcak
+## Unutmamak için kenara yazdığım ufak işler
+### Done
+- [x] motor speed pid private olcak
+- [x] TnM ve voltage değerlerinin her değerde aynı olduğuna emin ol
 
-# Yakın zamanda geliştirilmesi gereken temel özellikler
+- [ ] Motor parametreleri
 - [ ] Grafik plot, pid ve testler için inanılmaz önemli
 - [ ] Büyük motor güncellemesinden sonra elevator kodları elden geçmeli
+- [ ] asansör height pid limitleri ayarla
+- [ ] Motor PID
+- [ ] Kasnak çevre hız hesabı
+- [ ] gearbox test et
+- [ ] motor yükü kaldırabiliyor mu test et (motorda max force var)
 
 
 

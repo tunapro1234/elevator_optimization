@@ -102,7 +102,6 @@ impl PIDController {
 
         // Calculate the output
         let mut output = proportional + integral + derivative;
-        self.prev_output = output;
 
         // Check if the output is within limits
         if self.enable_limits {
@@ -112,6 +111,8 @@ impl PIDController {
                 output = self.max_output;
             }
         }
+
+        self.prev_output = output;
 
         // Return the output
         output

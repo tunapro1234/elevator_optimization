@@ -10,7 +10,7 @@ pub struct MotorProperties {
     pub _i: i32,
     pub kwp_in: f32,
     pub efficiency: f32,
-    voltage: f32,
+    pub voltage: f32,
     pub current: f32,
     pub rpm: f32,
     pub tnm: f32,
@@ -38,7 +38,35 @@ impl MotorProperties {
             return Err("No motor properties found".into());
         }
 
+        // Sort the data by current
+        // motor_properties.sort_by(|a, b| a.current.partial_cmp(&b.current).unwrap());
+
+        MotorProperties::check_properties(&motor_properties)?;
+
         Ok(motor_properties)
+    }
+
+    fn check_properties(properties: &Vec<Self>) -> Result<(), Box<dyn Error>> {
+        // Check if the properties are sorted by current
+        for i in 0..properties.len()-1 {
+            if properties[i].current > properties[i+1].current {
+                return Err("Motor properties should be sorted by current".into());
+            }
+        }
+
+        // Check if the voltage and the tnm are the same
+        for i in 0..properties.len()-1 {
+            if properties[i].voltage != properties[i+1].voltage {
+                // panic!("Voltage property of the motor should be the same. Check the data file"); 
+                return Err("Voltage property of the motor should be the same. Check the data file".into());
+            }
+            if properties[i].tnm != properties[i+1].tnm {
+                // panic!("TnM property of the motor should be the same. Check the data file"); 
+                return Err("TnM property of the motor should be the same. Check the data file".into());
+            }
+        }
+
+        Ok(())
     }
 
     pub fn get_max_rpm(properties: &Vec<Self>) -> f32 {
@@ -91,7 +119,11 @@ impl MotorProperties {
         closest_idx
     }
 
-    pub fn simulate_properties_from_current(properties: &Vec<Self>, current: f32) -> MotorProperties {
+    pub fn simulate_properties_from_current(properties: &Vec<Self>, current: f32) -> Option<MotorProperties> {
+        if current > Self::get_max_current(properties) {
+            return None;
+        }
+
         let matching_idx = MotorProperties::find_smaller_closest(properties, current);
         let mc1 = properties[matching_idx].current;
         let mc2 = properties[matching_idx+1].current;
@@ -114,17 +146,19 @@ impl MotorProperties {
         // instead this is more appropriate
         let efficiency = properties[matching_idx].efficiency + (properties[matching_idx+1].efficiency - properties[matching_idx].efficiency) * mult;
 
-        Self {
-            _i: 0,
-            kwp_in,
-            efficiency,
-            voltage,
-            current,
-            rpm,
-            tnm,
-            ih,
-            mo,
-        }
+        Some(
+            Self {
+                _i: 0,
+                kwp_in,
+                efficiency,
+                voltage,
+                current,
+                rpm,
+                tnm,
+                ih,
+                mo,
+            }
+        )
     }
 }
 
@@ -196,7 +230,7 @@ mod tests {
         // rpm -> 293.6120603015075, 299.5417085427135
         // tnm -> 785, 785
         let current = 61.;
-        let new_property = MotorProperties::simulate_properties_from_current(&motor_properties, current);
+        let new_property = MotorProperties::simulate_properties_from_current(&motor_properties, current).unwrap();
         assert!(297. < new_property.rpm && new_property.rpm < 298.);
     }
 
@@ -207,7 +241,7 @@ mod tests {
         // rpm -> 293.6120603015075, 299.5417085427135
         // tnm -> 785, 785
         let current = 61.;
-        let new_property = MotorProperties::simulate_properties_from_current(&motor_properties, current);
+        let new_property = MotorProperties::simulate_properties_from_current(&motor_properties, current).unwrap();
         assert!(new_property.tnm == 785.);
         assert!(88.94 < new_property.efficiency && new_property.efficiency < 88.96);
     }
@@ -219,9 +253,7 @@ mod tests {
         // rpm -> 293.6120603015075, 299.5417085427135
         // tnm -> 785, 785
         let current = 61.;
-        let new_property = MotorProperties::simulate_properties_from_current(&motor_properties, current);
+        let new_property = MotorProperties::simulate_properties_from_current(&motor_properties, current).unwrap();
         assert!(88.94 < new_property.efficiency && new_property.efficiency < 88.96);
     }
-
-
 }

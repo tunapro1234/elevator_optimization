@@ -1,5 +1,6 @@
 pub mod motor;
-pub mod motor_properties;
+mod motor_properties;
+mod motor_parameters;
 
 pub use motor::ElevatorMotor;
-pub use motor_properties::MotorProperties;
+// pub use motor_properties::MotorProperties;
