@@ -40,13 +40,16 @@ impl Elevator {
             1., 
             0., 
             0., 
+            0.,
             10., 
+            1.,
+            false,
+            0.,
             0.,
             false,
             0.,
             0.,
-            0.,
-            0.,
+            1.,
         );
         // let speed_pid = PIDController::new(1., 0., 0., 30., 0.);
         let motor = ElevatorMotor::from_file(

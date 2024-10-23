@@ -144,13 +144,17 @@ impl PIDController {
         self.change_limit = 0.;
     }
 
-    pub fn update_parameters(&mut self, kp: f32, ki: f32, kd: f32) {
+    pub fn set_parameters(&mut self, kp: f32, ki: f32, kd: f32) {
         self.kp = kp;
         self.ki = ki;
         self.kd = kd;
     }
 
-    pub fn update_integral_limit(&mut self, integral_limit: f32) {
+    pub fn set_integral_limit(&mut self, integral_limit: f32) {
+        self.integral_limit = integral_limit;
+    }
+
+    pub fn disable_integral_limit(&mut self, integral_limit: f32) {
         self.integral_limit = integral_limit;
     }
 
@@ -195,10 +199,12 @@ impl PIDController {
         self.integral += error * delta_time;
 
         // Apply the integral limit
-        if self.integral > self.integral_limit {
-            self.integral = self.integral_limit;
-        } else if self.integral < -self.integral_limit {
-            self.integral = -self.integral_limit;
+        if self.integral_limit != 0. {
+            if self.integral > self.integral_limit {
+                self.integral = self.integral_limit;
+            } else if self.integral < -self.integral_limit {
+                self.integral = -self.integral_limit;
+            }
         }
 
         // Calculate the integral contribution to the output
