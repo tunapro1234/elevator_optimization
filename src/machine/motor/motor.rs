@@ -96,7 +96,7 @@ mod tests {
 
     #[test]
     fn give_current() {
-        let mut motor = ElevatorMotor::new("data/motor_data.csv", 1.).unwrap();
+        let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
         let max_current = MotorProperties::get_max_current(&motor.motor_properties);
         motor.give_current(max_current-5.);
         assert!(motor.current_speed > 0.);
@@ -104,7 +104,7 @@ mod tests {
 
     #[test]
     fn give_negative_current() {
-        let mut motor = ElevatorMotor::new("data/motor_data.csv", 1.).unwrap();
+        let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
         let max_current = MotorProperties::get_max_current(&motor.motor_properties);
         motor.give_current(-max_current+5.);
         assert!(motor.current_speed < 0.);
@@ -113,7 +113,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn overcurrent() {
-        let mut motor = ElevatorMotor::new("data/motor_data.csv", 1.).unwrap();
+        let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
         let max_current = MotorProperties::get_max_current(&motor.motor_properties);
         motor.give_current(max_current+5.);
     }
@@ -121,14 +121,14 @@ mod tests {
     #[test]
     #[should_panic]
     fn negative_overcurrent() {
-        let mut motor = ElevatorMotor::new("data/motor_data.csv", 1.).unwrap();
+        let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
         let max_current = MotorProperties::get_max_current(&motor.motor_properties);
         motor.give_current(-max_current-5.);
     }
 
     #[test]
     fn set_speed() {
-        let mut motor = ElevatorMotor::new("data/motor_data.csv", 1.).unwrap();
+        let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
         let max_rpm = MotorProperties::get_max_rpm(&motor.motor_properties);
         let target_speed = max_rpm/2.;
 
@@ -152,7 +152,7 @@ mod tests {
 
     #[test]
     fn set_negative_speed() {
-        let mut motor = ElevatorMotor::new("data/motor_data.csv", 1.).unwrap();
+        let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
         let max_rpm = MotorProperties::get_max_rpm(&motor.motor_properties);
         let target_speed = -max_rpm/2.;
 

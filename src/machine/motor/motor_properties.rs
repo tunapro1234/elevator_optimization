@@ -170,13 +170,13 @@ mod tests {
 
     // Write a test case
     #[test]
-    fn read_motor_data() {
-        MotorProperties::get("data/motor_data.csv").unwrap();
+    fn read_motor_samples() {
+        MotorProperties::get("data/motor_samples.csv").unwrap();
     }
 
     #[test]
     fn get_max_rpm() {
-        let motor_properties = MotorProperties::get("data/motor_data.csv").unwrap();
+        let motor_properties = MotorProperties::get("data/motor_samples.csv").unwrap();
         let rpm = MotorProperties::get_max_rpm(&motor_properties) as i32;
         println!("Max RPM: {}", rpm);
         assert!(rpm == 299);
@@ -184,7 +184,7 @@ mod tests {
 
     #[test]
     fn get_max_current() {
-        let motor_properties = MotorProperties::get("data/motor_data.csv").unwrap();
+        let motor_properties = MotorProperties::get("data/motor_samples.csv").unwrap();
         let current = MotorProperties::get_max_current(&motor_properties) as i32;
         println!("Max Current: {}", current);
         assert!(current == 61);
@@ -192,7 +192,7 @@ mod tests {
 
     #[test]
     fn get_max_tnm() {
-        let motor_properties = MotorProperties::get("data/motor_data.csv").unwrap();
+        let motor_properties = MotorProperties::get("data/motor_samples.csv").unwrap();
         let tnm = MotorProperties::get_max_tnm(&motor_properties) as i32;
         println!("Max torque: {}", tnm);
         assert!(tnm == 785);
@@ -200,7 +200,7 @@ mod tests {
 
     #[test]
     fn max_current_closest() {
-        let motor_properties = MotorProperties::get("data/motor_data.csv").unwrap();
+        let motor_properties = MotorProperties::get("data/motor_samples.csv").unwrap();
         let current = MotorProperties::get_max_current(&motor_properties);
         let idx = MotorProperties::find_smaller_closest(&motor_properties, current);
         assert!(idx == motor_properties.len()-2);
@@ -208,7 +208,7 @@ mod tests {
 
     #[test]
     fn min_current_closest() {
-        let motor_properties = MotorProperties::get("data/motor_data.csv").unwrap();
+        let motor_properties = MotorProperties::get("data/motor_samples.csv").unwrap();
         let current = 0.;
         let idx = MotorProperties::find_smaller_closest(&motor_properties, current);
         assert!(idx == 0);
@@ -216,7 +216,7 @@ mod tests {
 
     #[test]
     fn current_closest() {
-        let motor_properties = MotorProperties::get("data/motor_data.csv").unwrap();
+        let motor_properties = MotorProperties::get("data/motor_samples.csv").unwrap();
         let current = 18.5;
         let idx = MotorProperties::find_smaller_closest(&motor_properties, current);
         println!("Closest index: {}", idx);
@@ -225,7 +225,7 @@ mod tests {
 
     #[test]
     fn simulate_properties_rpm() {
-        let motor_properties = MotorProperties::get("data/motor_data.csv").unwrap();
+        let motor_properties = MotorProperties::get("data/motor_samples.csv").unwrap();
         // currents -> 60.29266331658292, 61.51879396984925
         // rpm -> 293.6120603015075, 299.5417085427135
         // tnm -> 785, 785
@@ -236,7 +236,7 @@ mod tests {
 
     #[test]
     fn simulate_properties_tnm() {
-        let motor_properties = MotorProperties::get("data/motor_data.csv").unwrap();
+        let motor_properties = MotorProperties::get("data/motor_samples.csv").unwrap();
         // currents -> 60.29266331658292, 61.51879396984925
         // rpm -> 293.6120603015075, 299.5417085427135
         // tnm -> 785, 785
@@ -248,7 +248,7 @@ mod tests {
 
     #[test]
     fn simulate_properties_efficiency() {
-        let motor_properties = MotorProperties::get("data/motor_data.csv").unwrap();
+        let motor_properties = MotorProperties::get("data/motor_samples.csv").unwrap();
         // currents -> 60.29266331658292, 61.51879396984925
         // rpm -> 293.6120603015075, 299.5417085427135
         // tnm -> 785, 785
