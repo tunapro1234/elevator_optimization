@@ -50,7 +50,7 @@ impl Elevator {
         );
         // let speed_pid = PIDController::new(1., 0., 0., 30., 0.);
         let motor = ElevatorMotor::new(
-            "motor_properties.json", 
+            "motor_samples.json", 
             1.
         ).unwrap();
 

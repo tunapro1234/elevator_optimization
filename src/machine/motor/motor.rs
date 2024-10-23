@@ -1,11 +1,11 @@
 use std::error::Error;
 use crate::machine::pid_controller::PIDController;
-use super::motor_properties::MotorProperties;
+use super::motor_samples::MotorSamples;
 use std::time::Instant;
 
 pub struct ElevatorMotor {
-    motor_properties: Vec<MotorProperties>,
-    current_properties: MotorProperties,
+    motor_samples: Vec<MotorSamples>,
+    current_properties: MotorSamples,
     gear_ratio: f32,
     current_speed: f32,
     speed_pid: PIDController,
@@ -18,10 +18,10 @@ impl ElevatorMotor {
         properties_path: &str,
         gear_ratio: f32,
     ) -> Result<Self, Box<dyn Error>> {
-        let motor_properties = MotorProperties::get(properties_path)?;
-        let max_rpm = MotorProperties::get_max_rpm(&motor_properties);
-        let max_force = MotorProperties::get_max_tnm(&motor_properties) * gear_ratio;
-        let max_current = MotorProperties::get_max_current(&motor_properties);
+        let motor_samples = MotorSamples::get(properties_path)?;
+        let max_rpm = MotorSamples::get_max_rpm(&motor_samples);
+        let max_force = MotorSamples::get_max_tnm(&motor_samples) * gear_ratio;
+        let max_current = MotorSamples::get_max_current(&motor_samples);
 
         let speed_pid = PIDController::new(
             1., 
@@ -36,12 +36,12 @@ impl ElevatorMotor {
             -max_current
         );
 
-        let current_properties = MotorProperties::simulate_properties_from_current(&motor_properties, 0.)
+        let current_properties = MotorSamples::simulate_properties_from_current(&motor_samples, 0.)
             .unwrap();
 
         Ok( 
             Self {
-                motor_properties,
+                motor_samples,
                 gear_ratio,
                 speed_pid,
                 current_properties,
@@ -74,7 +74,7 @@ impl ElevatorMotor {
     }
 
     fn give_current(&mut self, current: f32) {
-        self.current_properties = MotorProperties::simulate_properties_from_current(&self.motor_properties, current)
+        self.current_properties = MotorSamples::simulate_properties_from_current(&self.motor_samples, current)
             .expect("Motor current limit exceeded");
 
         self.current_speed = self.current_properties.rpm;
@@ -97,7 +97,7 @@ mod tests {
     #[test]
     fn give_current() {
         let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
-        let max_current = MotorProperties::get_max_current(&motor.motor_properties);
+        let max_current = MotorSamples::get_max_current(&motor.motor_samples);
         motor.give_current(max_current-5.);
         assert!(motor.current_speed > 0.);
     }
@@ -105,7 +105,7 @@ mod tests {
     #[test]
     fn give_negative_current() {
         let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
-        let max_current = MotorProperties::get_max_current(&motor.motor_properties);
+        let max_current = MotorSamples::get_max_current(&motor.motor_samples);
         motor.give_current(-max_current+5.);
         assert!(motor.current_speed < 0.);
     }
@@ -114,7 +114,7 @@ mod tests {
     #[should_panic]
     fn overcurrent() {
         let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
-        let max_current = MotorProperties::get_max_current(&motor.motor_properties);
+        let max_current = MotorSamples::get_max_current(&motor.motor_samples);
         motor.give_current(max_current+5.);
     }
 
@@ -122,14 +122,14 @@ mod tests {
     #[should_panic]
     fn negative_overcurrent() {
         let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
-        let max_current = MotorProperties::get_max_current(&motor.motor_properties);
+        let max_current = MotorSamples::get_max_current(&motor.motor_samples);
         motor.give_current(-max_current-5.);
     }
 
     #[test]
     fn set_speed() {
         let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
-        let max_rpm = MotorProperties::get_max_rpm(&motor.motor_properties);
+        let max_rpm = MotorSamples::get_max_rpm(&motor.motor_samples);
         let target_speed = max_rpm/2.;
 
         motor.set_target_speed(target_speed);
@@ -153,7 +153,7 @@ mod tests {
     #[test]
     fn set_negative_speed() {
         let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
-        let max_rpm = MotorProperties::get_max_rpm(&motor.motor_properties);
+        let max_rpm = MotorSamples::get_max_rpm(&motor.motor_samples);
         let target_speed = -max_rpm/2.;
 
         motor.set_target_speed(target_speed);
