@@ -4,6 +4,8 @@
 ### Done
 - [x] motor speed pid private olcak
 - [x] TnM ve voltage değerlerinin her değerde aynı olduğuna emin ol
+- [ ] PID parametreleri
+- [ ] PID integral limit
 
 - [ ] Motor parametreleri
 - [ ] Grafik plot, pid ve testler için inanılmaz önemli

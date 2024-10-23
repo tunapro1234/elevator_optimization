@@ -1,3 +1,35 @@
+use serde::Deserialize;
+
+#[derive(Debug, Deserialize)]
+pub struct PIDParameters {
+    kp: f32,
+    ki: f32,
+    kd: f32,
+    integral_limit: f32,
+    update_freq: f32,
+    tolerance: f32,
+
+    #[serde(default = "default_enable_limits")]
+    enable_limits: bool,
+    #[serde(default = "default_max_target")]
+    max_target: f32,
+    #[serde(default = "default_min_target")]
+    min_target: f32,
+    #[serde(default = "default_max_output")]
+    max_output: f32,
+    #[serde(default = "default_min_output")]
+    min_output: f32,
+}
+
+fn default_enable_limits() -> bool { false }
+fn default_min_target() -> f32 { 0.  }
+fn default_max_target() -> f32 { 0.  }
+fn default_min_output() -> f32 { 0.  }
+fn default_max_output() -> f32 { 0.  }
+
+
+
+
 pub struct PIDController {
     pub target: f32,
     kp: f32,
@@ -17,6 +49,23 @@ pub struct PIDController {
 }
 
 impl PIDController {
+    pub fn from_parameters(
+        parameters: PIDParameters,
+    ) -> Self {
+        Self::new(
+            parameters.kp, 
+            parameters.ki, 
+            parameters.kd, 
+            parameters.update_freq,
+            parameters.tolerance,
+            parameters.enable_limits,
+            parameters.max_target,
+            parameters.min_target,
+            parameters.max_output,
+            parameters.min_output,
+        )
+    }
+
     pub fn new(
         kp: f32, 
         ki: f32, 

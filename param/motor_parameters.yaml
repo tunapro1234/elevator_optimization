@@ -1,0 +1,13 @@
+pid_parameters:
+    kp: 1.
+    ki: 0.
+    kd: 0.
+    integral_limit: 0.
+    update_freq: f64,
+
+gearbox_ratio: 1.
+output_shaft_radius: 10.
+sample_path: "data/motor_samples.csv"
+soft_rpm_limit: 200.
+soft_current_limit: 50.
+soft_output_accelaration_limit: 10.    
