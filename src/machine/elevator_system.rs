@@ -1,7 +1,4 @@
-use std::time::{SystemTime, UNIX_EPOCH};
 use super::elevator::Elevator;
-
-use super::elevator;
 
 extern crate rand;
 // use rand::Rng;

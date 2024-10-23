@@ -1,5 +1,5 @@
 use super::pid_controller::PIDController;
-use super::elevator_motor::ElevatorMotor;
+use super::motor::ElevatorMotor;
 use std::time::Instant;
 
 pub struct Elevator {

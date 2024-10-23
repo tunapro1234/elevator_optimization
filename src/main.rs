@@ -1,5 +1,5 @@
-mod elevator;
-use elevator::elevator_system::ElevatorSystem;
+mod machine;
+use machine::elevator_system::ElevatorSystem;
 
 use std::thread;
 use std::time::{Duration, Instant};

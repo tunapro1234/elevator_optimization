@@ -1,25 +1,25 @@
+// File for parsing the motor data from a CSV file
+
 use serde::Deserialize;
 use std::error::Error;
 use std::fs::File;
-use std::path::Path;
-use super::pid_controller::PIDController;
-use std::f64::consts::PI;
+
 
 #[derive(Debug, Deserialize, Copy, Clone)]
-struct MotorProperties {
-    i: i32,
-    kwp_in: f32,
-    efficiency: f32,
+pub struct MotorProperties {
+    pub _i: i32,
+    pub kwp_in: f32,
+    pub efficiency: f32,
     voltage: f32,
-    current: f32,
-    rpm: f32,
-    tnm: f32,
-    ih: f32,
-    mo: f32,
+    pub current: f32,
+    pub rpm: f32,
+    pub tnm: f32,
+    pub ih: f32,
+    pub mo: f32,
 }
 
 impl MotorProperties {
-    fn get(file_path: &str) -> Result<Vec<Self>, Box<dyn Error>> {
+    pub fn get(file_path: &str) -> Result<Vec<Self>, Box<dyn Error>> {
         // Open the CSV file
         let file = File::open(file_path)?;
 
@@ -41,7 +41,7 @@ impl MotorProperties {
         Ok(motor_properties)
     }
 
-    fn get_max_rpm(properties: &Vec<Self>) -> f32 {
+    pub fn get_max_rpm(properties: &Vec<Self>) -> f32 {
         let mut max_rpm = 0.0;
         for motor_property in properties {
             if motor_property.rpm > max_rpm {
@@ -51,7 +51,7 @@ impl MotorProperties {
         max_rpm
     }
 
-    fn get_max_tnm(properties: &Vec<Self>) -> f32 {
+    pub fn get_max_tnm(properties: &Vec<Self>) -> f32 {
         let mut max_tnm = 0.0;
         for motor_property in properties {
             if motor_property.tnm > max_tnm {
@@ -61,7 +61,7 @@ impl MotorProperties {
         max_tnm
     }
 
-    fn get_max_current(properties: &Vec<Self>) -> f32 {
+    pub fn get_max_current(properties: &Vec<Self>) -> f32 {
         let mut max_current = 0.0;
         for motor_property in properties {
             if motor_property.current > max_current {
@@ -71,7 +71,7 @@ impl MotorProperties {
         max_current
     }
 
-    fn find_smaller_closest(properties: &Vec<Self>, current: f32) -> usize {
+    pub fn find_smaller_closest(properties: &Vec<Self>, current: f32) -> usize {
         // verdiğimiz akımdaki datanın bir küçüğünün indexini verir
 
         let mut closest_current = 0.0;
@@ -91,7 +91,7 @@ impl MotorProperties {
         closest_idx
     }
 
-    fn simulate_properties_from_current(properties: &Vec<Self>, current: f32) -> MotorProperties {
+    pub fn simulate_properties_from_current(properties: &Vec<Self>, current: f32) -> MotorProperties {
         let matching_idx = MotorProperties::find_smaller_closest(properties, current);
         let mc1 = properties[matching_idx].current;
         let mc2 = properties[matching_idx+1].current;
@@ -115,7 +115,7 @@ impl MotorProperties {
         let efficiency = properties[matching_idx].efficiency + (properties[matching_idx+1].efficiency - properties[matching_idx].efficiency) * mult;
 
         Self {
-            i: 0,
+            _i: 0,
             kwp_in,
             efficiency,
             voltage,
@@ -127,101 +127,6 @@ impl MotorProperties {
         }
     }
 }
-
-
-pub struct ElevatorMotor {
-    motor_properties: Vec<MotorProperties>,
-    current_properties: MotorProperties,
-    gear_ratio: f32,
-    current_speed: f32,
-    pub speed_pid: PIDController,
-    pub total_energy_used: f32,
-    // pub max_rpm: f32,
-    pub max_tnm: f32,
-}
-
-impl ElevatorMotor {
-    pub fn new(
-        properties_path: &str,
-        gear_ratio: f32,
-    ) -> Result<Self, Box<dyn Error>> {
-        let motor_properties = MotorProperties::get(properties_path)?;
-        let max_rpm = MotorProperties::get_max_rpm(&motor_properties);
-        let max_tnm = MotorProperties::get_max_tnm(&motor_properties);
-        let max_current = MotorProperties::get_max_current(&motor_properties);
-
-        let speed_pid = PIDController::new(
-            1., 
-            0., 
-            0., 
-            30.,
-            0.,
-            true,
-            max_rpm,
-            -max_rpm,
-            max_current,
-            -max_current
-        );
-
-        let current_properties = MotorProperties::simulate_properties_from_current(&motor_properties, 0.);
-
-        Ok( 
-            Self {
-                motor_properties,
-                gear_ratio,
-                speed_pid,
-                current_properties,
-                current_speed: 0.0,
-                total_energy_used: 0.0,
-                // max_rpm,
-                max_tnm,
-            }
-        )
-    }
-
-    pub fn get_current_speed(&self) -> f32 {
-        // this function gives the speed of the output shaft of the gear box
-        self.current_speed / self.gear_ratio
-    }
-
-    pub fn set_target_speed(&mut self, target: f32) -> bool {
-        // this function sets the speed of the output shaft of the gear box
-        let motor_target = target*self.gear_ratio;
-        
-        // the limit is applied in pid controller
-        // if motor_target > self.max_rpm {
-        //     self.speed_pid.set_target(self.max_rpm);
-        //     false
-        // } 
-        // else {
-        //     self.speed_pid.set_target(motor_target);
-        //     true
-        // }
-
-        self.speed_pid.set_target(motor_target)
-    }
-
-    pub fn get_total_energy_used(&self) -> f32 {
-        self.total_energy_used
-    }
-
-    pub fn has_reached_target(&self) -> bool {
-        self.speed_pid.has_reached_target(self.current_speed)
-    }
-
-    pub fn give_current(&mut self, current: f32) {
-        self.current_properties = MotorProperties::simulate_properties_from_current(&self.motor_properties, current);
-        self.current_speed = self.current_properties.rpm;
-    }
-
-    pub fn update(&mut self, delta_time: f32) {
-        self.total_energy_used += self.current_properties.kwp_in * delta_time;
-
-        let new_current = self.speed_pid.update(self.current_speed, delta_time);
-        self.give_current(new_current);
-    }
-}
-
 
 
 #[cfg(test)]
