@@ -49,9 +49,8 @@ impl Elevator {
             0.,
         );
         // let speed_pid = PIDController::new(1., 0., 0., 30., 0.);
-        let motor = ElevatorMotor::new(
-            "motor_samples.json", 
-            1.
+        let motor = ElevatorMotor::from_file(
+            "parameters/motor_parameters.yaml", 
         ).unwrap();
 
         Self {

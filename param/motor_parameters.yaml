@@ -10,4 +10,8 @@ output_shaft_radius: 10.
 sample_path: "data/motor_samples.csv"
 soft_rpm_limit: 200.
 soft_current_limit: 50.
-soft_output_accelaration_limit: 10.    
+
+# Bir saniyede max kaç amper değişebileceği
+soft_current_change_limit: 1.    
+#   Motorun hareketlerinin daha gerçekçi olması 
+# için ve ivmeyi sınırlandırabilmek için ekledik

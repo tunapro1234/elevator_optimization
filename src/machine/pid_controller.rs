@@ -19,15 +19,16 @@ pub struct PIDParameters {
     max_output: f32,
     #[serde(default = "default_min_output")]
     min_output: f32,
+    #[serde(default = "default_change_limit")]
+    change_limit: f32,
 }
 
 fn default_enable_limits() -> bool { false }
-fn default_min_target() -> f32 { 0.  }
-fn default_max_target() -> f32 { 0.  }
-fn default_min_output() -> f32 { 0.  }
-fn default_max_output() -> f32 { 0.  }
-
-
+fn default_min_target() -> f32 { 0. }
+fn default_max_target() -> f32 { 0. }
+fn default_min_output() -> f32 { 0. }
+fn default_max_output() -> f32 { 0. }
+fn default_change_limit() -> f32 { 0. }
 
 
 pub struct PIDController {
@@ -40,6 +41,7 @@ pub struct PIDController {
     min_target: f32,
     max_output: f32,
     min_output: f32,
+    change_limit: f32,
     prev_error: f32,
     integral: f32,
     prev_output: f32,
@@ -63,6 +65,7 @@ impl PIDController {
             parameters.min_target,
             parameters.max_output,
             parameters.min_output,
+            parameters.change_limit,
         )
     }
 
@@ -77,6 +80,7 @@ impl PIDController {
         min_target: f32,
         max_output: f32,
         min_output: f32,
+        change_limit: f32,
     ) -> Self {
         Self {
             target: 0.0,
@@ -88,6 +92,7 @@ impl PIDController {
             min_target,
             max_output,
             min_output,
+            change_limit,
             prev_error: 0.0,
             integral: 0.0,
             prev_output: 0.0,
@@ -95,6 +100,14 @@ impl PIDController {
             update_freq,
             tolerance,
         }
+    }
+
+    pub fn set_limits(&mut self, min_output: f32, max_output: f32, min_target: f32, max_target: f32) {
+        self.enable_limits = true;
+        self.min_output = min_output;
+        self.max_output = max_output;
+        self.min_target = min_target;
+        self.max_target = max_target;
     }
 
     pub fn set_target(&mut self, target: f32) -> bool{
@@ -159,11 +172,20 @@ impl PIDController {
             } else if output > self.max_output {
                 output = self.max_output;
             }
+        
+            if self.change_limit != 0. {
+                if (output - current_value).abs()/delta_time > self.change_limit {
+                    if output > current_value {
+                        output = current_value + self.change_limit * delta_time;
+                    } else {
+                        output = current_value - self.change_limit * delta_time;
+                    }
+                }
+            }
         }
 
-        self.prev_output = output;
-
         // Return the output
+        self.prev_output = output;
         output
     }
 

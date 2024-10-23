@@ -1,12 +1,13 @@
 use std::error::Error;
+
 use crate::machine::pid_controller::PIDController;
 use super::motor_samples::MotorSamples;
-use std::time::Instant;
+use super::motor_parameters::MotorParameters;
 
 pub struct ElevatorMotor {
     motor_samples: Vec<MotorSamples>,
     current_properties: MotorSamples,
-    gear_ratio: f32,
+    gearbox_ratio: f32,
     current_speed: f32,
     speed_pid: PIDController,
     pub total_energy_used: f32,
@@ -14,37 +15,52 @@ pub struct ElevatorMotor {
 }
 
 impl ElevatorMotor {
-    pub fn new(
-        properties_path: &str,
-        gear_ratio: f32,
+    pub fn from_file(
+        file_path: &str,        
     ) -> Result<Self, Box<dyn Error>> {
-        let motor_samples = MotorSamples::get(properties_path)?;
-        let max_rpm = MotorSamples::get_max_rpm(&motor_samples);
-        let max_force = MotorSamples::get_max_tnm(&motor_samples) * gear_ratio;
-        let max_current = MotorSamples::get_max_current(&motor_samples);
+        let parameters = MotorParameters::from_file(file_path)?;
+        Self::new(parameters)
+    }
 
-        let speed_pid = PIDController::new(
-            1., 
-            0., 
-            0., 
-            30.,
-            0.,
-            true,
-            max_rpm,
-            -max_rpm,
-            max_current,
-            -max_current
+    pub fn new(
+        parameters: MotorParameters,
+    ) -> Result<Self, Box<dyn Error>> {
+
+        let mut speed_pid: PIDController = PIDController::from_parameters(parameters.pid_parameters);        
+        let motor_samples = MotorSamples::from_file(parameters.sample_path.as_str())?;
+
+        // hız limitleri
+        let max_rpm = MotorSamples::get_max_rpm(&motor_samples);
+        let max_soft_rpm = parameters.soft_rpm_limit;
+        // hangisi daha küçükse onu limit olarak kullanacağız
+        let rpm_limit = max_rpm.min(max_soft_rpm);
+
+        let max_current = MotorSamples::get_max_current(&motor_samples);
+        let max_soft_current = parameters.soft_current_limit;
+        // hangisi daha küçükse onu limit olarak kullanacağız
+        let current_limit = max_current.min(max_soft_current);
+
+        // hız ve akım sınırlarını belirle
+        speed_pid.set_limits(
+            -current_limit, 
+            current_limit, 
+            rpm_limit, 
+            -rpm_limit
         );
 
+        let max_torque = MotorSamples::get_max_tnm(&motor_samples) * parameters.gearbox_ratio;
+        let max_force =  max_torque * parameters.output_shaft_radius;
+
+        // I am unwrapping here because i know it will not panic
         let current_properties = MotorSamples::simulate_properties_from_current(&motor_samples, 0.)
             .unwrap();
 
         Ok( 
             Self {
                 motor_samples,
-                gear_ratio,
-                speed_pid,
+                gearbox_ratio: parameters.gearbox_ratio,
                 current_properties,
+                speed_pid,
                 current_speed: 0.0,
                 total_energy_used: 0.0,
                 max_force,
@@ -54,12 +70,12 @@ impl ElevatorMotor {
 
     pub fn get_current_speed(&self) -> f32 {
         // this function gives the speed of the output shaft of the gear box
-        self.current_speed / self.gear_ratio
+        self.current_speed / self.gearbox_ratio
     }
 
     pub fn set_target_speed(&mut self, target: f32) -> bool {
         // this function sets the speed of the output shaft of the gear box
-        let motor_target = target*self.gear_ratio;
+        let motor_target = target*self.gearbox_ratio;
 
         // rpm limit is applied in pid controller
         self.speed_pid.set_target(motor_target)
@@ -93,10 +109,11 @@ impl ElevatorMotor {
 mod tests {
     // Import the outer module's functions
     use super::*;
+    use std::time::Instant;
 
     #[test]
     fn give_current() {
-        let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
+        let mut motor = ElevatorMotor::from_file("param/motor_parameters.yaml").unwrap();
         let max_current = MotorSamples::get_max_current(&motor.motor_samples);
         motor.give_current(max_current-5.);
         assert!(motor.current_speed > 0.);
@@ -104,7 +121,7 @@ mod tests {
 
     #[test]
     fn give_negative_current() {
-        let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
+        let mut motor = ElevatorMotor::from_file("param/motor_parameters.yaml").unwrap();
         let max_current = MotorSamples::get_max_current(&motor.motor_samples);
         motor.give_current(-max_current+5.);
         assert!(motor.current_speed < 0.);
@@ -113,7 +130,7 @@ mod tests {
     #[test]
     #[should_panic]
     fn overcurrent() {
-        let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
+        let mut motor = ElevatorMotor::from_file("param/motor_parameters.yaml").unwrap();
         let max_current = MotorSamples::get_max_current(&motor.motor_samples);
         motor.give_current(max_current+5.);
     }
@@ -121,14 +138,14 @@ mod tests {
     #[test]
     #[should_panic]
     fn negative_overcurrent() {
-        let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
+        let mut motor = ElevatorMotor::from_file("param/motor_parameters.yaml").unwrap();
         let max_current = MotorSamples::get_max_current(&motor.motor_samples);
         motor.give_current(-max_current-5.);
     }
 
     #[test]
     fn set_speed() {
-        let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
+        let mut motor = ElevatorMotor::from_file("param/motor_parameters.yaml").unwrap();
         let max_rpm = MotorSamples::get_max_rpm(&motor.motor_samples);
         let target_speed = max_rpm/2.;
 
@@ -152,7 +169,7 @@ mod tests {
 
     #[test]
     fn set_negative_speed() {
-        let mut motor = ElevatorMotor::new("data/motor_samples.csv", 1.).unwrap();
+        let mut motor = ElevatorMotor::from_file("param/motor_parameters.yaml").unwrap();
         let max_rpm = MotorSamples::get_max_rpm(&motor.motor_samples);
         let target_speed = -max_rpm/2.;
 
