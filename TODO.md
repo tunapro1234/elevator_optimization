@@ -6,8 +6,9 @@
 - [x] TnM ve voltage değerlerinin her değerde aynı olduğuna emin ol
 - [x] PID parametreleri
 - [x] PID integral limit
+- [x] Motor parametreleri
+- [x] License (copyleft)
 
-- [ ] Motor parametreleri
 - [ ] Grafik plot, pid ve testler için inanılmaz önemli
 - [ ] Büyük motor güncellemesinden sonra elevator kodları elden geçmeli
 - [ ] asansör height pid limitleri ayarla

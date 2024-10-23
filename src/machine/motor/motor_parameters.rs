@@ -1,4 +1,8 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+// Copyright (C) 2024 Tuna Gül
+
 // File for parsing the motor parameters like voltage or randomness or pid coefficients from a yaml file
+
 use serde::Deserialize;
 use std::error::Error;
 use crate::machine::pid_controller::PIDParameters;
