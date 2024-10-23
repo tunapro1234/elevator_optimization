@@ -11,7 +11,6 @@ pub struct MotorParameters {
     pub sample_path: String,
     pub soft_rpm_limit: f32,
     pub soft_current_limit: f32,
-    pub soft_current_change_limit: f32,
 }
 
 impl MotorParameters {
@@ -19,5 +18,17 @@ impl MotorParameters {
         let file = std::fs::File::open(file_path)?;
         let result = serde_yaml::from_reader(file)?;
         Ok(result)
+    }
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn read() {
+        let parameters = MotorParameters::from_file("parameters/motor_parameters.yaml").unwrap();
+        println!("{:?}", parameters);
     }
 }

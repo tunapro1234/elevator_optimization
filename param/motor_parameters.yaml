@@ -5,13 +5,20 @@ pid_parameters:
     integral_limit: 0.
     update_freq: f64,
 
+    #   Bu iki kısıtlama kod içinde 
+    # belirleniyor, bunları atamanın bir anlamı yok
+    enable_output_limits: false
+    enable_target_limits: false
+
+    #   Change Limit değişkeni outputun bir 
+    # saniyede ne kadar değişebileceğini belirliyor
+    change_limit: 1.
+    # Akım artış azalışını kısıtlayarak ivmeyi sınırlandırabiliyoruz
+    #   Onun dışında, çalışma frekansı yerine saniyeye bağlı olduğu 
+    # için pid frekansı değiştiğine bu değeri değiştirmemiz gerekmiyor
+
 gearbox_ratio: 1.
 output_shaft_radius: 10.
 sample_path: "data/motor_samples.csv"
 soft_rpm_limit: 200.
 soft_current_limit: 50.
-
-# Bir saniyede max kaç amper değişebileceği
-soft_current_change_limit: 1.    
-#   Motorun hareketlerinin daha gerçekçi olması 
-# için ve ivmeyi sınırlandırabilmek için ekledik

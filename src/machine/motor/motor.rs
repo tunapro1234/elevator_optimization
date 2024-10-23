@@ -41,11 +41,13 @@ impl ElevatorMotor {
         let current_limit = max_current.min(max_soft_current);
 
         // hız ve akım sınırlarını belirle
-        speed_pid.set_limits(
+        speed_pid.set_output_limits(
             -current_limit, 
             current_limit, 
+        );
+        speed_pid.set_target_limits(
             rpm_limit, 
-            -rpm_limit
+            -rpm_limit,
         );
 
         let max_torque = MotorSamples::get_max_tnm(&motor_samples) * parameters.gearbox_ratio;
