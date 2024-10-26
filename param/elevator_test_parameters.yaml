@@ -1,0 +1,49 @@
+max_speed: 9999.
+max_accel: 9999.
+elevator_mass: 100.
+elevator_counter_mass: 60.
+max_load: 50.
+
+# Bu pid elevator height için
+pid_parameters:
+    kp: 0.176
+    ki: 0.
+    kd: 0.001
+    integral_limit: 0.
+    update_freq: 30.
+    tolerance: 10.
+
+    enable_debug_plotting: false
+    plot_path: "data/debug/motor_pid.png"
+
+    enable_output_limits: false
+    enable_target_limits: false
+
+    change_limit: 0.
+
+
+motor_parameters:
+    # Bu pid motor speed için
+    pid_parameters:
+        kp: 0.176
+        ki: 0.
+        kd: 0.001
+        integral_limit: 0.
+        update_freq: 30.
+        tolerance: 10.
+
+        enable_debug_plotting: false
+        plot_path: "data/debug/motor_pid.png"
+
+        enable_output_limits: false
+        enable_target_limits: false
+        change_limit: 0.
+
+    gearbox_ratio: 1.
+    output_shaft_radius: 1.
+    sample_path: "data/motor_samples.csv"
+    soft_rpm_limit: 0.
+    soft_current_limit: 0.
+
+    enable_debug_plotting: true
+    plot_path: "data/debug/motor_speed_output.png"

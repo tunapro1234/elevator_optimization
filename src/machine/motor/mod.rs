@@ -6,4 +6,4 @@ mod motor_samples;
 mod motor_parameters;
 
 pub use motor::ElevatorMotor;
-// pub use motor_samples::MotorProperties;
+pub use motor_parameters::MotorParameters;

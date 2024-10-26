@@ -15,7 +15,17 @@ pub struct MotorParameters {
     pub sample_path: String,
     pub soft_rpm_limit: f32,
     pub soft_current_limit: f32,
+
+    #[serde(default = "default_enable_debug_plotting")]
+    pub enable_debug_plotting: bool,
+    #[serde(default = "default_plot_path")]
+    pub plot_path: String,
+
 }
+
+fn default_enable_debug_plotting() -> bool { false }
+fn default_plot_path() -> String { "motor_plot.png".to_string() }
+
 
 impl MotorParameters {
     pub fn from_file(file_path: &str) -> Result<Self, Box<dyn Error>> {
@@ -32,7 +42,7 @@ mod tests {
 
     #[test]
     fn read() {
-        let parameters = MotorParameters::from_file("parameters/motor_parameters.yaml").unwrap();
+        let parameters = MotorParameters::from_file("param/motor_test_parameters.yaml").unwrap();
         println!("{:?}", parameters);
     }
 }

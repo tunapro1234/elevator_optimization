@@ -123,6 +123,9 @@ impl MotorSamples {
     }
 
     pub fn simulate_properties_from_current(samples: &Vec<Self>, current: f32) -> Option<MotorSamples> {
+        let dir: f32 = if current >= 0. { 1. } else { -1. };
+        let current = current.abs();
+
         if current > Self::get_max_current(samples) {
             return None;
         }
@@ -137,9 +140,9 @@ impl MotorSamples {
         let mult = (current - mc1) / (mc2 - mc1);
 
         let kwp_in = samples[matching_idx].kwp_in + (samples[matching_idx+1].kwp_in - samples[matching_idx].kwp_in) * mult;
-        let voltage = samples[matching_idx].voltage + (samples[matching_idx+1].voltage - samples[matching_idx].voltage) * mult;
-        let rpm = samples[matching_idx].rpm + (samples[matching_idx+1].rpm - samples[matching_idx].rpm) * mult;
-        let tnm = samples[matching_idx].tnm + (samples[matching_idx+1].tnm - samples[matching_idx].tnm) * mult;
+        let voltage = (samples[matching_idx].voltage + (samples[matching_idx+1].voltage - samples[matching_idx].voltage) * mult) * dir;
+        let rpm = (samples[matching_idx].rpm + (samples[matching_idx+1].rpm - samples[matching_idx].rpm) * mult) * dir;
+        let tnm = (samples[matching_idx].tnm + (samples[matching_idx+1].tnm - samples[matching_idx].tnm) * mult) * dir;
         let ih = samples[matching_idx].ih + (samples[matching_idx+1].ih - samples[matching_idx].ih) * mult;
         let mo = samples[matching_idx].mo + (samples[matching_idx+1].mo - samples[matching_idx].mo) * mult;
 
@@ -155,7 +158,7 @@ impl MotorSamples {
                 kwp_in,
                 efficiency,
                 voltage,
-                current,
+                current: current * dir,
                 rpm,
                 tnm,
                 ih,

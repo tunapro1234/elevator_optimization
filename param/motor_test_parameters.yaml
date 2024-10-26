@@ -1,9 +1,13 @@
 pid_parameters:
-    kp: 1.
+    kp: 0.176
     ki: 0.
-    kd: 0.
+    kd: 0.001
     integral_limit: 0.
-    update_freq: f64,
+    update_freq: 30.
+    tolerance: 10.
+
+    enable_debug_plotting: false
+    plot_path: "data/debug/motor_pid.png"
 
     #   Bu iki kısıtlama kod içinde 
     # belirleniyor, bunları atamanın bir anlamı yok
@@ -12,13 +16,16 @@ pid_parameters:
 
     #   Change Limit değişkeni outputun bir 
     # saniyede ne kadar değişebileceğini belirliyor
-    change_limit: 1.
+    change_limit: 0.
     # Akım artış azalışını kısıtlayarak ivmeyi sınırlandırabiliyoruz
     #   Onun dışında, çalışma frekansı yerine saniyeye bağlı olduğu 
     # için pid frekansı değiştiğine bu değeri değiştirmemiz gerekmiyor
 
 gearbox_ratio: 1.
-output_shaft_radius: 10.
+output_shaft_radius: 1.
 sample_path: "data/motor_samples.csv"
-soft_rpm_limit: 200.
-soft_current_limit: 50.
+soft_rpm_limit: 0.
+soft_current_limit: 0.
+
+enable_debug_plotting: true
+plot_path: "data/debug/motor_speed_output.png"

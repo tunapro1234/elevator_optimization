@@ -1,0 +1,13 @@
+gravity: 9.81
+time_multiplier: 1
+
+floors:
+    - 0
+    - 100
+    - 200
+    - 300
+    - 400
+
+elevators:
+    - "param/elevator_test_parameters.yaml"
+    - "param/elevator_test_parameters.yaml"

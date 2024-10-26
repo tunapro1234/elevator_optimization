@@ -8,8 +8,9 @@
 - [x] PID integral limit
 - [x] Motor parametreleri
 - [x] License (copyleft)
+- [x] Grafik plot, pid ve testler için inanılmaz önemli
 
-- [ ] Grafik plot, pid ve testler için inanılmaz önemli
+- [ ] Update freq devre dışı bırak
 - [ ] Büyük motor güncellemesinden sonra elevator kodları elden geçmeli
 - [ ] asansör height pid limitleri ayarla
 - [ ] Motor PID

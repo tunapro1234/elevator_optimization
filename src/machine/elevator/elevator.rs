@@ -1,19 +1,18 @@
 // SPDX-License-Identifier: GPL-3.0-or-later
 // Copyright (C) 2024 Tuna Gül
 
-use super::pid_controller::PIDController;
-use super::motor::ElevatorMotor;
-use std::time::Instant;
+use crate::machine::pid_controller::PIDController;
+use crate::machine::motor::ElevatorMotor;
+use super::elevator_parameters::ElevatorParameters;
+
+use std::error::Error;
 
 pub struct Elevator {
     pub floors: Vec<f32>, // floor heights, taken from elevator controller
     pub is_idle: bool,
-    // pid-related
     pub current_height: f32,
-    // pub current_speed: f32,
     pub current_accel: f32,
     pub height_pid: PIDController,
-    // pub speed_pid: PIDController,
     // weigth and forces 
     pub max_speed: f32,
     pub max_accel: f32,
@@ -24,78 +23,60 @@ pub struct Elevator {
     pub motor: ElevatorMotor,
     // simulation-related
     pub gravity: f32,
-    pub last_update: Instant,
-    pub time_multiplier: f32,
 }
 
 
 impl Elevator {
+    pub fn from_file(
+        floors: Vec<f32>,
+        gravity: f32,
+        file_path: &str,        
+    ) -> Result<Self, Box<dyn Error>> {
+        let parameters = ElevatorParameters::from_file(file_path)?;
+        Ok(
+            Self::new(
+                floors,
+                gravity,
+                parameters,
+            )
+        )
+    }
+
     pub fn new(
         floors: Vec<f32>,
-        elevator_mass: f32,
-        elevator_counter_mass: f32,
-        max_speed: f32,
-        max_accel: f32,
-        max_load: f32,
-        time_multiplier: f32,
+        gravity: f32,
+        parameters: ElevatorParameters,
     ) -> Self {
-        let height_pid = PIDController::new(
-            1., 
-            0., 
-            0., 
-            0.,
-            10., 
-            1.,
-            false,
-            0.,
-            0.,
-            false,
-            0.,
-            0.,
-            1.,
-        );
-        // let speed_pid = PIDController::new(1., 0., 0., 30., 0.);
-        let motor = ElevatorMotor::from_file(
-            "parameters/motor_parameters.yaml", 
-        ).unwrap();
+        let height_pid = PIDController::new(parameters.pid_parameters);
+        let motor = ElevatorMotor::new(parameters.motor_parameters).unwrap();
 
         Self {
             floors,
             is_idle: true,
             current_height: 0.0,
-            // current_speed: 0.0,
             current_accel: 0.0,
             height_pid,
-            // speed_pid,
-            max_speed,
-            max_accel,
-            elevator_mass,
-            elevator_counter_mass,
-            max_load,
+            max_speed: parameters.max_speed,
+            max_accel: parameters.max_accel,
+            elevator_mass: parameters.elevator_mass,
+            elevator_counter_mass: parameters.elevator_counter_mass,
+            max_load: parameters.max_load,
             current_load: 0.0,
             motor,
-            gravity: 9.81,
-            last_update: Instant::now(),
-            time_multiplier,
+            gravity,
         }
     }
 
-    fn get_used_energy(&self) -> f32{
+    fn get_speed(&self) -> f32 {
+        self.motor.get_current_speed()
+    }
+
+    pub fn get_used_energy(&self) -> f32{
         self.motor.get_total_energy_used()
     }
 
     fn get_total_mass(&self) -> f32 {
         self.elevator_mass + self.current_load + self.elevator_counter_mass
-    }
-
-    fn get_delta_time(&mut self) -> f32 {
-        // calculate delta time
-        let now = Instant::now();
-        let mut delta_time = now.duration_since(self.last_update).as_secs_f32();
-        self.last_update = now;
-        delta_time *= self.time_multiplier;
-        
-        delta_time
     }
 
     fn calculate_target_speed(&mut self, delta_time: f32) -> f32 {
@@ -150,13 +131,10 @@ impl Elevator {
         self.motor.get_current_speed()
     }
 
-    pub fn update(&mut self) {
+    pub fn update(&mut self, delta_time: f32) {
         // Delta time ve geçmiş döngüyle hesaplama yapan işler fonksiyonun başında
         // yeni hesaplamalar aşağıda
         
-        // geçen zamanı al
-        let delta_time = self.get_delta_time();
-
         // geçen zamana bağlı yüksekliği güncelle
         self.current_height += self.motor.get_current_speed() * delta_time;
 
