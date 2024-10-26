@@ -1,6 +1,123 @@
 # Yiğit bunu senin için yazıyorum burayı güncellememiz lazım
 Simülasyonu olabildiğince gerçeğe yakın kılmak için hem makine kısmında hem de popülasyon kısmında iyi mekanizmalarımız olmalı 
 
+# Geleneksel Asansör Algoritmaları
+Selam Tuna'cım, yaygın olarak kullanılan iki algoritmayı belirledim:
+# Elevator Management Algorithms in Python
+
+## 1. Nearest Car Algorithm
+
+Biri asansör çağırdığında **idle** veya çağrının yapıldığı kata doğru ilerleyen ve aynı zamanda çağrının yapıldığı yöne ilerleyen (eğer asansörde kullanıcı yukarı veya aşağı gitmek istediğini önceden belirtiyorsa, ki bu günümüz asansörlerinde çok yaygın) asansör gönderilir. Ardından, asansör sırayla kullanıcıların seçtiği yönde gidilmek istenilen katlara bırakarak ilerler.
+
+### Python Kod Örneği
+
+```python
+class Elevator:
+    def __init__(self, id, current_floor, direction, idle=True):
+        self.id = id
+        self.current_floor = current_floor
+        self.direction = direction  # 'up', 'down', or 'idle'
+        self.idle = idle
+
+    def move_to_floor(self, target_floor):
+        self.current_floor = target_floor
+        print(f"Elevator {self.id} moved to floor {target_floor}")
+
+class NearestCarAlgorithm:
+    def __init__(self, elevators):
+        self.elevators = elevators
+
+    def find_nearest_elevator(self, call_floor, call_direction):
+        nearest_elevator = None
+        min_distance = float('inf')
+        
+        for elevator in self.elevators:
+            if elevator.idle or elevator.direction == call_direction:
+                distance = abs(elevator.current_floor - call_floor)
+                if distance < min_distance:
+                    nearest_elevator = elevator
+                    min_distance = distance
+        
+        return nearest_elevator
+
+    def handle_call(self, call_floor, call_direction):
+        elevator = self.find_nearest_elevator(call_floor, call_direction)
+        if elevator:
+            elevator.idle = False
+            elevator.direction = call_direction
+            elevator.move_to_floor(call_floor)
+        else:
+            print("No available elevator to handle the call.")
+
+# Örnek kullanım
+elevators = [Elevator(1, 0, 'idle'), Elevator(2, 5, 'up'), Elevator(3, 10, 'idle')]
+algorithm = NearestCarAlgorithm(elevators)
+
+# Bir çağrı örneği
+algorithm.handle_call(3, 'up')
+```
+## 2. Simple Collective Control Algorithm
+
+Biri asansör çağırdığında çağrının yapıldığı yöne doğru ilerleyen ve o yönde devam eden bir asansör varsa, bu asansör çağrıya atanır. Asansör, hareket ettiği yönde diğer çağrıları da sırayla alır ve o yöne gitmek isteyen kullanıcıları katlarına bırakır. Tüm çağrılar tamamlanınca asansör yön değiştirir ve bu kez diğer yönde gelen çağrılara yanıt verir.
+
+### Python Kod Örneği
+```python
+class Elevator:
+    def __init__(self, id, current_floor, direction='idle', idle=True):
+        self.id = id
+        self.current_floor = current_floor
+        self.direction = direction  # 'up', 'down', or 'idle'
+        self.idle = idle
+        self.stops = []
+
+    def add_stop(self, floor):
+        if floor not in self.stops:
+            self.stops.append(floor)
+            self.stops.sort(reverse=self.direction == 'down')
+
+    def move(self):
+        if self.stops:
+            next_stop = self.stops.pop(0)
+            print(f"Elevator {self.id} moving to floor {next_stop}")
+            self.current_floor = next_stop
+            if not self.stops:
+                self.direction = 'idle'
+                self.idle = True
+        else:
+            print(f"Elevator {self.id} is idle at floor {self.current_floor}")
+
+class SimpleCollectiveControl:
+    def __init__(self, elevators):
+        self.elevators = elevators
+
+    def assign_call(self, call_floor, call_direction):
+        for elevator in self.elevators:
+            if elevator.idle or elevator.direction == call_direction:
+                elevator.direction = call_direction
+                elevator.idle = False
+                elevator.add_stop(call_floor)
+                break
+        else:
+            print("No available elevator to handle the call.")
+
+    def step(self):
+        for elevator in self.elevators:
+            elevator.move()
+
+# Örnek kullanım
+elevators = [Elevator(1, 0), Elevator(2, 5), Elevator(3, 10)]
+control_system = SimpleCollectiveControl(elevators)
+
+# Çağrıları sisteme atanma ve adım adım hareket simülasyonu
+control_system.assign_call(3, 'up')
+control_system.assign_call(7, 'up')
+control_system.assign_call(2, 'down')
+
+# Adımları simüle etme
+for _ in range(5):
+    control_system.step()
+```
+
 # Makine kısmı 
 Bu kısım makine tarafında yazdığımız kodların temel özelliklerini içeriyor
 Makine kısmında motor, elevator ve elevator system olmak üzere 3 temel yapı var.
