@@ -72,10 +72,50 @@ impl Human {
             }
         }
     }
-
-    fn calc_area(weight: f32) -> f32 {
-        weight / 10.0
+    
+    fn calc_area(weight: f32, gender: &Gender) -> f32 {
+        let (a, b) = match gender {
+            Gender::Male => {
+                let a = 0.6 + 0.004 * weight;
+                let b = 0.3 + 0.003 * weight;
+                (a, b)
+            },
+            Gender::Female => {
+                let a = 0.5 + 0.004 * weight;
+                let b = 0.3 + 0.003 * weight;
+                (a, b)
+            }
+        };
+    
+        // Calculate elliptical area
+        PI * a * b
     }
+    
+    fn generate_ellipse_points(weight: f32, gender: &Gender, num_points: usize) -> Vec<(f32, f32)> {
+        let (a, b) = match gender {
+            Gender::Male => {
+                let a = 0.6 + 0.004 * weight;
+                let b = 0.3 + 0.003 * weight;
+                (a, b)
+            },
+            Gender::Female => {
+                let a = 0.5 + 0.004 * weight;
+                let b = 0.3 + 0.003 * weight;
+                (a, b)
+            }
+        };
+    
+        // Generate ellipse points
+        let mut points = Vec::new();
+        for i in 0..num_points {
+            let theta = 2.0 * PI * i as f32 / num_points as f32;
+            let x = a * theta.cos();
+            let y = b * theta.sin();
+            points.push((x, y));
+        }
+        points
+    }
+
 
     pub fn increment_waiting_time(&mut self, increment: f32) {
         self.waiting_time += increment;
